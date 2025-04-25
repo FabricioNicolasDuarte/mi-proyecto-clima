@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ClimApp - Sistema de Información Climática</title>
+    
+    <!-- OpenWeatherMap y Leaflet CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+    <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+    <div class="app">
+        <!-- Header con navegación -->
+        <header class="header">
+            <div class="app__container header__container">
+                <div class="header__logo">
+                    <span class="header__logo-icon icon-logo"></span>
+                    ClimApp
+                </div>
+                <nav class="header__nav nav">
+                    <ul class="nav__list">
+                        <li class="nav__item"><a href="#" class="nav__link nav__link--active" id="homeLink">Inicio</a></li>
+                        <li class="nav__item"><a href="#" class="nav__link" id="mapLink">Mapa</a></li>
+                        <li class="nav__item"><a href="#" class="nav__link">Historial</a></li>
+                        <li class="nav__item"><a href="#" class="nav__link">Alertas</a></li>
+                        <li class="nav__item"><a href="#" class="nav__link">Configuración</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </header>
+
+        <!-- Contenido principal -->
+        <main class="main">
+            <div class="app__container">
+                <!-- Estados de carga/error (inicialmente ocultos) -->
+                <div class="loading hidden" id="loadingState">
+                    <div class="loading__spinner"></div>
+                    <div class="loading__text">Cargando datos del clima...</div>
+                </div>
+
+                <div class="error hidden" id="errorState">
+                    <div class="error__icon icon-error"></div>
+                    <h2 class="error__title">Error al cargar los datos</h2>
+                    <p class="error__message">No pudimos obtener la información del clima. Por favor, verifica tu conexión e inténtalo nuevamente.</p>
+                    <button class="error__button" id="retryButton">Intentar nuevamente</button>
+                </div>
+
+                <!-- Dashboard principal (inicialmente oculto) -->
+                <div class="dashboard" id="weatherDashboard">
+                    <!-- Columna principal -->
+                    <div class="dashboard__main">
+                        <!-- Tarjeta del clima actual -->
+                        <div class="weather-card">
+                            <div class="weather-card__header">
+                                <div>
+                                    <h2 class="weather-card__title" id="locationName">Buenos Aires, Argentina</h2>
+                                    <div class="weather-card__subtitle" id="weatherDescription">Parcialmente nublado</div>
+                                </div>
+                                <div class="weather-card__update">
+                                    <div id="lastUpdate">Actualizado: 10:30 AM</div>
+                                    <button class="weather-card__refresh" id="refreshButton">
+                                        <span class="weather-card__refresh-icon icon-refresh"></span>
+                                        Actualizar
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="weather-card__main">
+                                <div class="weather-card__temp" id="currentTemp">25°C</div>
+                                <div class="weather-card__icon icon-cloudy" id="weatherIcon"></div>
+                            </div>
+                            <div class="weather-card__details">
+                                <div class="weather-detail">
+                                    <div class="weather-detail__icon icon-temp"></div>
+                                    <div class="weather-detail__value" id="feelsLike">27°C</div>
+                                    <div class="weather-detail__label">Sensación térmica</div>
+                                </div>
+                                <div class="weather-detail">
+                                    <div class="weather-detail__icon icon-humidity"></div>
+                                    <div class="weather-detail__value" id="humidity">65%</div>
+                                    <div class="weather-detail__label">Humedad</div>
+                                </div>
+                                <div class="weather-detail">
+                                    <div class="weather-detail__icon icon-wind"></div>
+                                    <div class="weather-detail__value" id="windSpeed">12 km/h</div>
+                                    <div class="weather-detail__label">Viento</div>
+                                </div>
+                                <div class="weather-detail">
+                                    <div class="weather-detail__icon icon-pressure"></div>
+                                    <div class="weather-detail__value" id="pressure">1015 hPa</div>
+                                    <div class="weather-detail__label">Presión</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Pronóstico -->
+                        <section class="forecast">
+                            <h2 class="forecast__title">Pronóstico de 5 días</h2>
+                            <div class="forecast__container" id="forecastContainer">
+                                <!-- Día 1 -->
+                                <div class="forecast-card">
+                                    <div class="forecast-card__day">Lunes</div>
+                                    <div class="forecast-card__icon icon-sunny"></div>
+                                    <div class="forecast-card__temp">
+                                        <span class="forecast-card__temp-max">28°</span>
+                                        <span class="forecast-card__temp-min">18°</span>
+                                    </div>
+                                </div>
+                                <!-- Día 2 -->
+                                <div class="forecast-card">
+                                    <div class="forecast-card__day">Martes</div>
+                                    <div class="forecast-card__icon icon-cloudy"></div>
+                                    <div class="forecast-card__temp">
+                                        <span class="forecast-card__temp-max">26°</span>
+                                        <span class="forecast-card__temp-min">17°</span>
+                                    </div>
+                                </div>
+                                <!-- Día 3 -->
+                                <div class="forecast-card">
+                                    <div class="forecast-card__day">Miércoles</div>
+                                    <div class="forecast-card__icon icon-rainy"></div>
+                                    <div class="forecast-card__temp">
+                                        <span class="forecast-card__temp-max">22°</span>
+                                        <span class="forecast-card__temp-min">15°</span>
+                                    </div>
+                                </div>
+                                <!-- Día 4 -->
+                                <div class="forecast-card">
+                                    <div class="forecast-card__day">Jueves</div>
+                                    <div class="forecast-card__icon icon-rainy"></div>
+                                    <div class="forecast-card__temp">
+                                        <span class="forecast-card__temp-max">21°</span>
+                                        <span class="forecast-card__temp-min">14°</span>
+                                    </div>
+                                </div>
+                                <!-- Día 5 -->
+                                <div class="forecast-card">
+                                    <div class="forecast-card__day">Viernes</div>
+                                    <div class="forecast-card__icon icon-cloudy"></div>
+                                    <div class="forecast-card__temp">
+                                        <span class="forecast-card__temp-max">24°</span>
+                                        <span class="forecast-card__temp-min">16°</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- Alertas meteorológicas -->
+                        <section class="alerts">
+                            <h2 class="alerts__title">Alertas meteorológicas</h2>
+                            <div id="alertsContainer">
+                                <!-- Alerta 1 -->
+                                <div class="alert-card alert-card--warning">
+                                    <div class="alert-card__icon icon-warning"></div>
+                                    <div class="alert-card__content">
+                                        <h3 class="alert-card__title">Alerta por lluvias intensas</h3>
+                                        <p class="alert-card__message">Se esperan precipitaciones de entre 30 y 50 mm en las próximas 24 horas. Posible acumulación de agua en calles y avenidas.</p>
+                                        <div class="alert-card__footer">
+                                            <span>Emitida por Servicio Meteorológico Nacional</span>
+                                            <span class="alert-card__time">2 horas atrás</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                    </div>
+
+                    <!-- Columna lateral -->
+                    <div class="dashboard__sidebar">
+                        <!-- Buscador de ubicación -->
+                        <div class="location">
+                            <h2 class="location__title">Buscar ubicación</h2>
+                            <div class="location__form">
+                                <input type="text" class="location__input" id="locationInput" placeholder="Nombre de ciudad...">
+                                <button class="location__button" id="searchButton">
+                                    <span class="icon-search"></span>
+                                </button>
+                            </div>
+                            <ul class="location-list" id="locationList">
+                                <li class="location-list__item location-list__item--active">
+                                    <span class="location-list__icon icon-location"></span>
+                                    <div class="location-list__text">
+                                        <div class="location-list__city">Buenos Aires</div>
+                                        <div class="location-list__country">Argentina</div>
+                                    </div>
+                                </li>
+                                <li class="location-list__item">
+                                    <span class="location-list__icon icon-location"></span>
+                                    <div class="location-list__text">
+                                        <div class="location-list__city">Córdoba</div>
+                                        <div class="location-list__country">Argentina</div>
+                                    </div>
+                                </li>
+                                <li class="location-list__item">
+                                    <span class="location-list__icon icon-location"></span>
+                                    <div class="location-list__text">
+                                        <div class="location-list__city">Rosario</div>
+                                        <div class="location-list__country">Argentina</div>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <!-- Datos históricos -->
+                        <div class="historical">
+                            <h2 class="historical__title">Datos históricos</h2>
+                            <div class="historical__tabs">
+                                <div class="historical__tab historical__tab--active" data-period="week">7 días</div>
+                                <div class="historical__tab" data-period="month">30 días</div>
+                                <div class="historical__tab" data-period="year">12 meses</div>
+                            </div>
+                            <div class="historical__content">
+                                <div class="historical__chart" id="historicalChart">
+                                    <!-- Aquí se renderizaría el gráfico -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Sección del mapa del clima -->
+                <section class="map-section" id="mapSection">
+                    <h2 class="forecast__title">Mapa meteorológico en tiempo real</h2>
+                    <div class="map-controls">
+                        <div class="map-controls__group">
+                            <label class="map-controls__label">Capa:</label>
+                            <select class="map-controls__select" id="mapLayerSelect">
+                                <option value="temp">Temperatura</option>
+                                <option value="clouds">Nubes</option>
+                                <option value="precipitation">Precipitación</option>
+                                <option value="wind">Viento</option>
+                                <option value="pressure">Presión</option>
+                            </select>
+                        </div>
+                        <div class="map-controls__group">
+                            <label class="map-controls__label">Zoom:</label>
+                            <select class="map-controls__select" id="mapZoomSelect">
+                                <option value="3">País</option>
+                                <option value="5">Región</option>
+                                <option value="7">Ciudad</option>
+                                <option value="10">Barrio</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="map-container">
+                        <div id="weatherMap"></div>
+                    </div>
+                    <div class="map-legend">
+                        <h3 class="map-legend__title">Leyenda</h3>
+                        <div class="map-legend__items" id="mapLegend">
+                            <div class="map-legend__item">
+                                <div class="map-legend__color" style="background-color: #0000FF;"></div>
+                                <span class="map-legend__label">Muy frío (< 0°C)</span>
+                            </div>
+                            <div class="map-legend__item">
+                                <div class="map-legend__color" style="background-color: #00FFFF;"></div>
+                                <span class="map-legend__label">Frío (0-10°C)</span>
+                            </div>
+                            <div class="map-legend__item">
+                                <div class="map-legend__color" style="background-color: #00FF00;"></div>
+                                <span class="map-legend__label">Templado (10-20°C)</span>
+                            </div>
+                            <div class="map-legend__item">
+                                <div class="map-legend__color" style="background-color: #FFFF00;"></div>
+                                <span class="map-legend__label">Cálido (20-30°C)</span>
+                            </div>
+                            <div class="map-legend__item">
+                                <div class="map-legend__color" style="background-color: #FF0000;"></div>
+                                <span class="map-legend__label">Muy cálido (> 30°C)</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+
+                </div>
+            </main>
+
+            <!-- Footer -->
+            <footer class="footer">
+                <div class="app__container footer__container">
+                    <div class="footer__section">
+                        <h3 class="footer__title">Acerca de</h3>
+                        <p>ClimApp es una aplicación para consultar información climática en tiempo real.</p>
+                    </div>
+                    <div class="footer__section">
+                        <h3 class="footer__title">Enlaces útiles</h3>
+                        <ul class="footer__list">
+                            <li class="footer__item"><a href="#" class="footer__link">Política de privacidad</a></li>
+                            <li class="footer__item"><a href="#" class="footer__link">Términos de uso</a></li>
+                            <li class="footer__item"><a href="#" class="footer__link">Contacto</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer__section">
+                        <h3 class="footer__title">Síguenos</h3>
+                        <ul class="footer__list">
+                            <li class="footer__item"><a href="#" class="footer__link">Facebook</a></li>
+                            <li class="footer__item"><a href="#" class="footer__link">Twitter</a></li>
+                            <li class="footer__item"><a href="#" class="footer__link">Instagram</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="footer__copyright">
+                    &copy; 2023 ClimApp. Todos los derechos reservados.
+                </div>
+            </footer>
+        </div>
+        <script src="app.js"></script>
+    </body>
+    </html>
